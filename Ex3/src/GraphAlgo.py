@@ -3,7 +3,10 @@ from Ex3.src.GraphInterface import GraphInterface
 from Ex3.src.DiGraph import DiGraph
 from Ex3.src.DiGraph import NodeData
 import queue
+from typing import List
 from math import inf
+import json
+
 
 class GraphAlgo(GraphAlgoInterface):
 
@@ -13,9 +16,55 @@ class GraphAlgo(GraphAlgoInterface):
     def get_graph(self) -> GraphInterface:
         return self.Graph
 
-  #  def load_from_json(self, file_name: str) -> bool:
+    def load_from_json(self, file_name: str) -> bool:
+        load_graph = DiGraph()
+        try:
+            with open(file_name, "r") as file:
+                my_dict = json.load(file)
+                Nodes = my_dict["Nodes"]
+                Edges = my_dict["Edges"]
+                for n in Nodes:
+                    node_key = n.get("id")
+                    pos = n.get("pos")
+                    if pos is None:
+                        load_graph.add_node(node_key, None)
+                        continue
+                    if isinstance(pos, str):
+                        x, y, z = pos.split(",")
+                    else:
+                        x = pos[0]
+                        y = pos[1]
+                        z = pos[2]
+                    pos = (float(x), float(y), float(z))
+                    load_graph.add_node(node_key, pos)
+                for e in Edges:
+                    load_graph.add_edge(e.get("src"), e.get("dest"), e.get("w"))
 
-   # def save_to_json(self, file_name: str) -> bool:
+        except IOError as e:
+            print(e)
+            return False
+
+        self.Graph = load_graph
+        return True
+
+    def save_to_json(self, file_name: str) -> bool:
+        try:
+            with open(file_name, "w") as file:
+                Nodes = []
+                Edges = []
+                for n in self.Graph.get_all_v().keys():
+                    for d, w in self.Graph.all_out_edges_of_node(n).items():
+                        edge = {"src": n, "w": w, "dest": d}
+                        Edges.append(edge)
+                for i in self.Graph.get_all_v().values():
+                    curr_node = {"pos": i.getPos(), "id": i.getKey()}
+                    Nodes.append(curr_node)
+                json.dump({"Edges": Edges, "Nodes": Nodes}, fp=file)
+            # json.dump(self.Graph, default=lambda m: m.__dict__, indent=4, fp=file)
+        except IOError as e:
+            print(e)
+            return False
+        return True
 
     def dijkstra(self, id1: int, id2: int) -> (float, dict):
         dist = {}
@@ -54,80 +103,86 @@ class GraphAlgo(GraphAlgoInterface):
             return inf, []
 
         return path
-    def fillOrder(self, node: NodeData , q: queue):
-        node.setInfo("True")
-        for i in node.out:
-            curr = self.Graph.getNode(i)
-            if curr.getInfo.__eq__("False"):
-                self.fillOrder(curr, q)
-        q.put(node)
-    def get_transpose(self):
-        ga = GraphAlgo(self.get_graph())
-        for i in ga.Graph.get_all_v().values():
-            for n in i.getOut():
-                curr = self.Graph.getNode(n)
-                if curr is None:
-                    continue
-                curr.AddGetOut(i,0)
-        return ga
 
-    def DFSUtill(self, node: NodeData):
-        node.setInfo("True")
-        for i in self.Graph.get_all_v().values():
-            if i.getInfo.__eq__("False"):
-                self.DFSUtil(i)
+    def dfs_algo(self) -> list:
+        stack = []
+        # Mark all the vertices as not visited (For first DFS)
+        visited = [False] * (len(self.get_graph().get_all_v().values()))
+        # Fill vertices in stack according to their finishing
+        # times
+        for i in range(len(self.get_graph().get_all_v().values())):
+            if not visited[i]:
+                self.fillOrder(i, visited, stack)
+
+                # Create a reversed graph
+        gr = self.getTranspose()
+
+        # Mark all the vertices as not visited (For second DFS)
+        visited = [False] * (len(self.get_graph().get_all_v()))
+        strong_lists = []
+        count = 0
+        # Now process all vertices in order defined by Stack
+        while stack:
+            i = stack.pop()
+            if not visited[i]:
+                l = []
+                gr.DFSUtil(i, visited, l)
+                strong_lists.insert(count, l)
+                count += 1
+
+        return strong_lists
 
     def connected_component(self, id1: int) -> list:
-        q = queue.Queue()
-        parent = {}
-        src_node = self.Graph.getNode(id1)
-        nodes = self.Graph.get_all_v()
-        for i in nodes.values():
-            i.setInfo("False")
-            parent[i.getKey()] = None
-        for i in nodes.values():
-            if i.getInfo().__eq__("False"):
-                self.fillOrder(i, q)
-        gt = self.get_transpose()
+        if self.Graph.getNode(id1) is None:
+            return None
+        lists = self.dfs_algo()
+        max_list = []
+        for i in lists:
+            if i.__contains__(id1):
+                if len(i) > len(max_list):
+                    max_list = i
+        return max_list
 
-        nodes_transpose = gt.Graph.get_all_v().values()
-        for i in nodes_transpose.values():
-            i.setInfo("False")
+    def connected_components(self) -> List[list]:
+        lists = []
+        index = 0
+        for i in self.dfs_algo():
+            if len(i) > 0:
+                lists.insert(index, i)
+            index += 1
+        return lists
 
-        while not q.empty():
-            v = q.get()
-            if v.getInfo().__eq__("False"):
-                gt.DFSUtill(v)
+    def DFSUtil(self, v: int, visited: list, l: list):
+        # Mark the current node as visited and print it
+        visited[v] = True
+        l.append(v)
+        # Recur for all the vertices adjacent to this vertex
+        cur_node = self.Graph.getNode(v)
+        for i in cur_node.getOut():
+            if not visited[i]:
+                self.DFSUtil(i, visited, l)
 
+    def fillOrder(self, v, visited, stack):
+        # Mark the current node as visited
+        visited[v] = True
+        curr_node = self.Graph.getNode(v)
+        # Recur for all the vertices adjacent to this vertex
+        for i in curr_node.getOut():
+            if not visited[i]:
+                self.fillOrder(i, visited, stack)
+        stack = stack.append(v)
 
-
-
-
-
-
-
-
-if __name__ == '__main__':
-        a = DiGraph()
-        a.add_node(0)
-        a.add_node(1)
-        a.add_node(2)
-        a.add_node(3)
-        a.add_edge(0, 1, 5)
-        a.add_edge(1, 2, 6)
-#    a.add_edge(2, 3, 7)
-#   a.add_edge(0, 3, 2)
-
-        ga = GraphAlgo(a)
-        d = ga.connected_component(0)
-        d = 0
-
-
-
-
-
-
-
+    def getTranspose(self):
+        tempG = DiGraph()
+        ga = GraphAlgo(tempG)
+        for i in self.Graph.get_all_v().values():
+            ga.Graph.add_node(i.getKey(), i.getPos())
+        # Recur for all the vertices adjacent to this vertex
+        for i in self.Graph.get_all_v():
+            curr_node = self.Graph.getNode(i)
+            for j in curr_node.getOut():
+                ga.Graph.add_edge(j, i, 0)
+        return ga
 
 
 

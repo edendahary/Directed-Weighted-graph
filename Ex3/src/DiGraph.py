@@ -2,7 +2,7 @@ from Ex3.src.GraphInterface import GraphInterface
 
 
 class NodeData:
-    def __init__(self, key: int, pos: tuple = None, weight: float = 0, tag: int = 0, info: str = ""):
+    def __init__(self, key: int, pos: tuple = None, weight: float = 0, tag: int = 0, info: str = "", **kwargs):
         self.key = key
         self.pos = pos
         self.weight = weight
@@ -22,6 +22,12 @@ class NodeData:
 
     def AddGetOut(self, src: int, w: float):
         self.out[src] = w
+
+    def getPos(self) -> float:
+        return self.pos
+
+    def setPos(self, p: float):
+        self.pos = p
 
     def getIn(self) -> int:
         return self.IN

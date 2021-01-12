@@ -1,3 +1,5 @@
+import random
+
 from Ex3.src.GraphAlgoInterface import GraphAlgoInterface
 from Ex3.src.GraphInterface import GraphInterface
 from Ex3.src.DiGraph import DiGraph
@@ -6,6 +8,8 @@ import queue
 from typing import List
 from math import inf
 import json
+import numpy as np
+import matplotlib.pyplot as plt
 
 
 class GraphAlgo(GraphAlgoInterface):
@@ -184,5 +188,43 @@ class GraphAlgo(GraphAlgoInterface):
                 ga.Graph.add_edge(j, i, 0)
         return ga
 
-
+    def plot_graph(self) -> None:
+        x_values = []
+        y_values = []
+        h_w = 0.0004
+        w_arrow = 0.000005
+        if self.Graph.v_size() > 10:
+            h_w = 0.0003
+            w_arrow = 0.000007
+        for i in self.Graph.get_all_v().values():
+            if i.getPos() is None:
+                random_x = random.uniform(0.5, self.graph.v_size())
+                random_y = random.uniform(0.5, self.graph.v_size())
+                i.setPos(random_x, random_y, 0.0)
+                x_values.append(i.getPos()[0])
+                y_values.append(i.getPos()[1])
+            else:
+                x_values.append(i.getPos()[0])
+                y_values.append(i.getPos()[1])
+        l = []
+        for i in self.Graph.get_all_v():
+            l.append(i)
+        fig, ax = plt.subplots()
+        ax.scatter(x_values, y_values)
+        for i, txt in enumerate(l):
+            ax.annotate(l[i], (x_values[i], y_values[i]))
+        for n in self.Graph.get_all_v().keys():
+            for j in self.Graph.all_out_edges_of_node(n):
+                x1 = self.Graph.get_all_v().get(n).getPos()[0]
+                y1 = self.Graph.get_all_v().get(n).getPos()[1]
+                x2 = self.Graph.get_all_v().get(j).getPos()[0]
+                y2 = self.Graph.get_all_v().get(j).getPos()[1]
+                plt.arrow(x1, y1, (x2 - x1),
+                          (y2 - y1), length_includes_head=True, width=w_arrow,
+                          head_width=h_w, ec='k')
+        plt.plot(x_values, y_values, "ro")
+        plt.ylabel("y")
+        plt.title("Ex3-OOP")
+        plt.xlabel("x")
+        plt.show()
 

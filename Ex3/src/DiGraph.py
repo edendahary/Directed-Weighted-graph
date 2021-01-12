@@ -62,6 +62,9 @@ class NodeData:
     def __cmp__(self, other):
         return other.tag < self.tag
 
+    def __repr__(self) -> str:
+        return f"{self.key}: |edges out| {len(self.out)} |edges in| {len(self.IN)}"
+
 
 class DiGraph(GraphInterface):
 
@@ -101,7 +104,6 @@ class DiGraph(GraphInterface):
 
         self.getNode(id2).AddGetIn(id1, weight)
         self.getNode(id1).AddGetOut(id2, weight)
-
         self.Es += 1
         self.Mc += 1
         return True
@@ -136,5 +138,8 @@ class DiGraph(GraphInterface):
             self.Mc += 1
             return True
         return False
+
+    def __repr__(self):
+        return f"Graph |V|{len(self.Nodes)} |E| {self.Es}"
 
 

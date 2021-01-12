@@ -1,3 +1,4 @@
+import heapq
 import random
 
 from Ex3.src.GraphAlgoInterface import GraphAlgoInterface
@@ -14,8 +15,8 @@ import matplotlib.pyplot as plt
 
 class GraphAlgo(GraphAlgoInterface):
 
-    def __init__(self, graph: DiGraph):
-        self.Graph = graph
+    def __init__(self, g: GraphInterface = None):
+        self.Graph = g
 
     def get_graph(self) -> GraphInterface:
         return self.Graph
@@ -64,7 +65,6 @@ class GraphAlgo(GraphAlgoInterface):
                     curr_node = {"pos": i.getPos(), "id": i.getKey()}
                     Nodes.append(curr_node)
                 json.dump({"Edges": Edges, "Nodes": Nodes}, fp=file)
-            # json.dump(self.Graph, default=lambda m: m.__dict__, indent=4, fp=file)
         except IOError as e:
             print(e)
             return False
@@ -73,40 +73,58 @@ class GraphAlgo(GraphAlgoInterface):
     def dijkstra(self, id1: int, id2: int) -> (float, dict):
         dist = {}
         perv = {}
-        q = queue.PriorityQueue()
+        h = []
+        heapq.heappush(h, (0, id1))
         for i in self.Graph.Nodes:
             curr = self.Graph.getNode(i)
-            curr.setTag(i)
+            curr.setTag(inf)
             curr.setInfo("in_queue")
             if curr.getKey() == id1:
                 dist[i] = 0
+                curr.setTag(0)
             else:
                 dist[i] = inf
-            q.put(curr.getKey())
-        while not q.empty():
-            n = q.get()
-            curr_node = self.Graph.getNode(n)
+        while len(h) != 0:
+            currcost, currvertx = heapq.heappop(h)
+            curr_node = self.Graph.getNode(currvertx)
             curr_node.setInfo("not_in_queue")
-            edges = self.Graph.getNode(n).out
+            edges = self.Graph.getNode(currvertx).out
             for i in edges:
                 curr_edge = self.Graph.getNode(i)
                 if curr_edge.getInfo().__eq__("in_queue"):
-                    alt = dist.get(n) + edges.get(i)
+                    alt = dist.get(currvertx) + edges.get(i)
                     if alt < dist.get(curr_edge.getKey()):
                         dist[curr_edge.getKey()] = alt
-                        perv[curr_edge.getKey()] = curr
-                        q.get(curr_edge.getKey())
-                        q.put(curr_edge.getKey())
+                        perv[curr_edge.getKey()] = currvertx
+                        heapq.heappush(h, (currcost + edges.get(i), curr_edge.getKey()))
         return dist[self.Graph.getNode(id2).getKey()], perv
 
     def shortest_path(self, id1: int, id2: int) -> (float, list):
+        s_p = []
+        if id1 not in self.Graph.get_all_v().keys() or id2 not in self.Graph.get_all_v().keys():
+            return float('inf'), []
         if id1 == id2:
             return inf, None
         path = self.dijkstra(id1, id2)
         if path[0] == inf:
             return inf, []
+        p = path[1]
+        s_p.append(id2)
+        x = p.get(id2)
+        i = p.get(id2)
+        while len(p) != 0:
+            s_p.append(i)
+            i = p.get(i)
+            if i is None:
+                break
+            p.pop(x)
+            x = i
+        l = s_p
+        l.reverse()
+        k = [float(path[0]), l]
 
-        return path
+
+        return k
 
     def dfs_algo(self) -> list:
         stack = []
@@ -198,9 +216,10 @@ class GraphAlgo(GraphAlgoInterface):
             w_arrow = 0.000007
         for i in self.Graph.get_all_v().values():
             if i.getPos() is None:
-                random_x = random.uniform(0.5, self.graph.v_size())
-                random_y = random.uniform(0.5, self.graph.v_size())
-                i.setPos(random_x, random_y, 0.0)
+                random_x = random.uniform(0.5, self.Graph.v_size())
+                random_y = random.uniform(0.5, self.Graph.v_size())
+                i.setPos((random_x, random_y, 0.0))
+
                 x_values.append(i.getPos()[0])
                 y_values.append(i.getPos()[1])
             else:

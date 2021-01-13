@@ -101,12 +101,13 @@ class DiGraph(GraphInterface):
 
         if not self.Nodes.__contains__(id1) or not self.Nodes.__contains__(id2):
             return False
-
-        self.getNode(id2).AddGetIn(id1, weight)
-        self.getNode(id1).AddGetOut(id2, weight)
-        self.Es += 1
-        self.Mc += 1
-        return True
+        if not self.getNode(id1).out.__contains__(id2):
+            self.getNode(id2).AddGetIn(id1, weight)
+            self.getNode(id1).AddGetOut(id2, weight)
+            self.Es += 1
+            self.Mc += 1
+            return True
+        return False
 
     def add_node(self, node_id: int, pos: tuple = None) -> bool:
         if self.Nodes.__contains__(node_id):
@@ -133,10 +134,11 @@ class DiGraph(GraphInterface):
         if node_id1 == node_id2:
             return False
         if self.Nodes.__contains__(node_id1) and self.Nodes.__contains__(node_id2):
-            self.getNode(node_id1).out.pop(node_id2)
-            self.Es -= 1
-            self.Mc += 1
-            return True
+            if self.getNode(node_id1).out.__contains__(node_id2):
+                self.getNode(node_id1).out.pop(node_id2)
+                self.Es -= 1
+                self.Mc += 1
+                return True
         return False
 
     def __repr__(self):

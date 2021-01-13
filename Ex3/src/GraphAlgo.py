@@ -122,8 +122,6 @@ class GraphAlgo(GraphAlgoInterface):
         l = s_p
         l.reverse()
         k = [float(path[0]), l]
-
-
         return k
 
     def dfs_algo(self) -> list:

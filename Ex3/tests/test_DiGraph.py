@@ -1,6 +1,7 @@
 import unittest
 from Ex3.src.DiGraph import DiGraph
 
+
 class MyTestCase(unittest.TestCase):
 
     def test_add_node(self):
@@ -13,6 +14,7 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(graph.v_size(), 12)
         graph.add_node(0)
         self.assertEqual(graph.v_size(), 12)
+
     def test_add_edge(self):
         graph = DiGraph()
         for i in range(5):
@@ -116,9 +118,3 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(16, graph.get_mc())
         graph.remove_node(0)
         self.assertEqual(16, graph.get_mc())
-
-
-
-
-
-

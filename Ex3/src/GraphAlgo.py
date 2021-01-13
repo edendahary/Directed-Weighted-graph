@@ -102,9 +102,9 @@ class GraphAlgo(GraphAlgoInterface):
     def shortest_path(self, id1: int, id2: int) -> (float, list):
         s_p = []
         if id1 not in self.Graph.get_all_v().keys() or id2 not in self.Graph.get_all_v().keys():
-            return float('inf'), []
+            return [inf, s_p]
         if id1 == id2:
-            return inf, None
+            return [inf, s_p]
         path = self.dijkstra(id1, id2)
         if path[0] == inf:
             return inf, []
@@ -165,11 +165,13 @@ class GraphAlgo(GraphAlgoInterface):
 
     def connected_components(self) -> List[list]:
         lists = []
-        index = 0
-        for i in self.dfs_algo():
-            if len(i) > 0:
-                lists.insert(index, i)
-            index += 1
+        if self.Graph is not None:
+            if self.Graph.v_size() > 0:
+                index = 0
+                for i in self.dfs_algo():
+                    if len(i) > 0:
+                     lists.insert(index, i)
+                    index += 1
         return lists
 
     def DFSUtil(self, v: int, visited: list, l: list):

@@ -59,6 +59,10 @@ class NodeData:
     def setInfo(self, i: str):
         self.info = i
 
+    def __eq__(self, o: object) -> bool:
+        if isinstance(o, NodeData):
+            return self.key == o.key and self.out == o.out and self.IN == o.IN
+
     def __cmp__(self, other):
         return other.tag < self.tag
 
@@ -140,6 +144,10 @@ class DiGraph(GraphInterface):
                 self.Mc += 1
                 return True
         return False
+
+    def __eq__(self, o: object) -> bool:
+        if isinstance(o, DiGraph):
+            return self.Nodes == o.Nodes
 
     def __repr__(self):
         return f"Graph |V|{len(self.Nodes)} |E| {self.Es}"

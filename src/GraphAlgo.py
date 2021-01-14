@@ -183,7 +183,7 @@ class GraphAlgo(GraphAlgoInterface):
     def plot_graph(self) -> None:
         x_values = []
         y_values = []
-        h_w = 0.0004
+        h_w = 0.0008
         w_arrow = 0.000005
         if self.Graph.v_size() > 10:
             h_w = 0.0003
